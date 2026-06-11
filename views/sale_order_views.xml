@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_order_form_so_approval" model="ir.ui.view">
+        <field name="name">sale.order.form.so.approval</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Tombol approval di header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_approve" string="Approve"
+                        type="object" class="btn-success"
+                        invisible="approval_state != 'to_approve'"/>
+                <button name="action_refuse" string="Refuse"
+                        type="object" class="btn-secondary"
+                        invisible="approval_state != 'to_approve'"/>
+            </xpath>
+
+            <!-- Status approval di samping statusbar -->
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="approval_state" widget="statusbar"
+                       statusbar_visible="to_approve,approved"
+                       invisible="approval_state == 'none'"/>
+                <field name="requires_approval" invisible="1"/>
+                <field name="requires_berita_acara" invisible="1"/>
+                <field name="so_approval_category" invisible="1"/>
+            </xpath>
+
+            <!-- Tab Approval / Berita Acara -->
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Approval / Berita Acara" name="so_approval">
+                    <group>
+                        <group string="Info Approval">
+                            <field name="so_approval_category" readonly="1"/>
+                            <field name="today_attempt_count" readonly="1"/>
+                            <field name="requires_approval" readonly="1"/>
+                            <field name="approved_by" readonly="1"/>
+                            <field name="approved_date" readonly="1"/>
+                        </group>
+                        <group string="Berita Acara"
+                               invisible="not requires_berita_acara">
+                            <field name="berita_acara_file"
+                                   filename="berita_acara_filename"/>
+                            <field name="berita_acara_filename" invisible="1"/>
+                            <field name="berita_acara_url"
+                                   placeholder="https://..."/>
+                            <field name="berita_acara_photo" widget="image"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

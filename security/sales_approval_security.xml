@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="group_so_approver" model="res.groups">
+        <field name="name">SO Approver (Store)</field>
+        <field name="category_id" ref="base.module_category_sales_sales"/>
+        <field name="comment">User berwenang menyetujui Sales Order gudang Store
+            pada attempt ke-2 dan seterusnya dalam hari yang sama.</field>
+    </record>
+
+</odoo>

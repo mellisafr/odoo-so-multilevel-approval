@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class SaleOrder(models.Model):
@@ -103,3 +104,59 @@ class SaleOrder(models.Model):
             or self.berita_acara_photo
             or self.berita_acara_url
         )
+
+    def _approver_group_for(self):
+        """Group yang berwenang menyetujui SO ini, sesuai kategori gudang."""
+        self.ensure_one()
+        if self.so_approval_category == 'internal_3pl':
+            # Internal/3PL: approval oleh WH Manager.
+            return 'stock.group_stock_manager'
+        # Store: approval oleh user tertentu (SO Approver).
+        return 'sales_approval.group_so_approver'
+
+    def action_confirm(self):
+        """Tahan SO yang butuh approval; sisanya dikonfirmasi normal."""
+        to_confirm = self.env['sale.order']
+        for order in self:
+            # Hitung ulang kondisi terkini saat konfirmasi.
+            order._compute_today_attempt_count()
+            order._compute_approval_requirements()
+
+            if order.requires_approval and order.approval_state != 'approved':
+                # Berita Acara wajib sebelum masuk antrian approval.
+                if order.requires_berita_acara and not order._has_berita_acara():
+                    raise ValidationError(
+                        "Berita Acara wajib dilampirkan (file, foto, atau URL) "
+                        "sebelum SO ini dapat diajukan untuk persetujuan."
+                    )
+                order.approval_state = 'to_approve'
+            else:
+                to_confirm |= order
+
+        if to_confirm:
+            return super(SaleOrder, to_confirm).action_confirm()
+        return True
+
+    def action_approve(self):
+        """Setujui SO lalu lanjutkan konfirmasi."""
+        for order in self:
+            if not self.env.user.has_group(order._approver_group_for()):
+                raise UserError(
+                    "Anda tidak berwenang menyetujui Sales Order ini."
+                )
+            if order.requires_berita_acara and not order._has_berita_acara():
+                raise ValidationError(
+                    "Berita Acara wajib dilampirkan sebelum approval."
+                )
+            order.write({
+                'approval_state': 'approved',
+                'approved_by': self.env.user.id,
+                'approved_date': fields.Datetime.now(),
+            })
+            order.action_confirm()
+        return True
+
+    def action_refuse(self):
+        """Tolak pengajuan approval."""
+        self.write({'approval_state': 'refused'})
+        return True

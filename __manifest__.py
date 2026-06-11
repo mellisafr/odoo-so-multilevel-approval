@@ -8,7 +8,9 @@
     'license': 'LGPL-3',
     'depends': ['sale_management', 'sale_stock'],
     'data': [
+        'security/sales_approval_security.xml',
         'views/stock_warehouse_views.xml',
+        'views/sale_order_views.xml',
     ],
     'installable': True,
     'application': False,
