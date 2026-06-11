@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_sale_approval_wizard_form" model="ir.ui.view">
+        <field name="name">sale.approval.wizard.form</field>
+        <field name="model">sale.approval.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Review Approval SO">
+                <field name="order_id" invisible="1"/>
+                <field name="requires_berita_acara" invisible="1"/>
+                <group>
+                    <field name="so_approval_category" readonly="1"/>
+                    <field name="today_attempt_count" readonly="1"/>
+                    <field name="has_berita_acara" readonly="1"/>
+                </group>
+                <div class="alert alert-warning" role="alert"
+                     invisible="not requires_berita_acara or has_berita_acara">
+                    Berita Acara belum dilampirkan. Lengkapi di SO sebelum menyetujui.
+                </div>
+                <group>
+                    <field name="note"
+                           placeholder="Alasan/catatan (opsional untuk Approve, disarankan untuk Refuse)"/>
+                </group>
+                <footer>
+                    <button name="action_approve" string="Approve"
+                            type="object" class="btn-success"/>
+                    <button name="action_refuse" string="Refuse"
+                            type="object" class="btn-danger"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

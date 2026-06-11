@@ -50,6 +50,9 @@ class SaleOrder(models.Model):
     approved_date = fields.Datetime(
         string='Tanggal Approval', readonly=True, copy=False,
     )
+    approval_note = fields.Text(
+        string='Catatan Approval', readonly=True, copy=False,
+    )
 
     # Lampiran Berita Acara: file, foto, dan/atau URL bukti.
     berita_acara_file = fields.Binary(
@@ -115,8 +118,14 @@ class SaleOrder(models.Model):
         return 'sales_approval.group_so_approver'
 
     def action_confirm(self):
-        """Tahan SO yang butuh approval; sisanya dikonfirmasi normal."""
+        """Klik Confirm: validasi Berita Acara, lalu buka wizard approval.
+
+        - Berita Acara belum lengkap -> ValidationError (blokir).
+        - Sudah lengkap & butuh approval -> set 'to_approve' + buka wizard.
+        - Tidak butuh approval / sudah approved -> konfirmasi normal.
+        """
         to_confirm = self.env['sale.order']
+        pending = self.env['sale.order']
         for order in self:
             # Hitung ulang kondisi terkini saat konfirmasi.
             order._compute_today_attempt_count()
@@ -130,12 +139,30 @@ class SaleOrder(models.Model):
                         "sebelum SO ini dapat diajukan untuk persetujuan."
                     )
                 order.approval_state = 'to_approve'
+                pending |= order
             else:
                 to_confirm |= order
 
+        res = True
         if to_confirm:
-            return super(SaleOrder, to_confirm).action_confirm()
-        return True
+            res = super(SaleOrder, to_confirm).action_confirm()
+
+        # Buka popup review approval untuk SO yang baru masuk antrian.
+        if pending:
+            return pending[0].action_open_approval_wizard()
+        return res
+
+    def action_open_approval_wizard(self):
+        """Buka popup review approval (Approve/Refuse)."""
+        self.ensure_one()
+        return {
+            'name': 'Review Approval SO',
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.approval.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_order_id': self.id},
+        }
 
     def action_approve(self):
         """Setujui SO lalu lanjutkan konfirmasi."""

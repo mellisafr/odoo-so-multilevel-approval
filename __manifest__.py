@@ -9,8 +9,10 @@
     'depends': ['sale_management', 'sale_stock'],
     'data': [
         'security/sales_approval_security.xml',
+        'security/ir.model.access.csv',
         'views/stock_warehouse_views.xml',
         'views/sale_order_views.xml',
+        'wizard/sale_approval_wizard_views.xml',
     ],
     'installable': True,
     'application': False,
