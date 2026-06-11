@@ -21,14 +21,66 @@ kondisional** (file, foto, atau URL).
 - Bila wajib, SO tidak langsung terkonfirmasi melainkan masuk status **Menunggu Approval**,
   dan lampiran Berita Acara divalidasi terlebih dahulu.
 
-## Instalasi
+## Cara Install
 
-1. Salin folder `sales_approval` ke direktori `custom_modules` (addons path).
-2. Restart service Odoo, lalu **Update Apps List**.
-3. Install modul **Sales Approval**.
-4. Buka tiap gudang (Inventory → Configuration → Warehouses) dan set **Approval Category**:
+### 1. Letakkan modul di addons path
+
+Clone atau salin folder modul ke direktori `custom_modules` Anda:
+
+```bash
+cd /odoo17/custom_modules
+git clone https://github.com/<user>/odoo17-sales-approval.git
+```
+
+**Penting:** rename folder hasil clone menjadi nama teknikal modul, yaitu
+`sales_approval`. Nama folder harus sama persis dengan technical name modul agar
+Odoo dapat mengenalinya.
+
+```bash
+mv odoo17-sales-approval sales_approval
+```
+
+Pastikan direktori tersebut terdaftar pada `addons_path` di file konfigurasi Odoo
+(`odoo.conf`):
+
+```ini
+[options]
+addons_path = /odoo17/addons,/odoo17/custom_modules
+```
+
+### 2. Restart Odoo dan aktifkan mode developer
+
+```bash
+./odoo-bin -c odoo.conf
+```
+
+Lalu masuk ke **Settings → Activate the developer mode**.
+
+### 3. Update Apps List dan install
+
+1. Buka menu **Apps**.
+2. Klik **Update Apps List**.
+3. Cari **Sales Approval**, lalu klik **Activate / Install**.
+
+Alternatif lewat command line (langsung install/upgrade ke database tertentu):
+
+```bash
+# install pertama kali
+./odoo-bin -c odoo.conf -d <nama_db> -i sales_approval --stop-after-init
+
+# upgrade setelah ada perubahan kode
+./odoo-bin -c odoo.conf -d <nama_db> -u sales_approval --stop-after-init
+```
+
+### 4. Konfigurasi pasca-install
+
+1. **Set kategori gudang** — Inventory → Configuration → Warehouses, isi field
+   **Approval Category** pada tiap gudang:
    - `Store` → Store (Ritel)
    - `Internal 3PL` / `Factory` → Internal / 3PL
+2. **Set approver** — Settings → Users:
+   - Internal/3PL: beri user group **Inventory / Administrator** (`stock.group_stock_manager`).
+   - Store: centang group **SO Approver (Store)**.
 
 ## Dependensi
 
