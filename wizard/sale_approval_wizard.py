@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class SaleApprovalWizard(models.TransientModel):
@@ -22,6 +22,9 @@ class SaleApprovalWizard(models.TransientModel):
     )
     note = fields.Text(string='Catatan')
 
+    @api.depends('order_id.berita_acara_file',
+                 'order_id.berita_acara_photo',
+                 'order_id.berita_acara_url')
     def _compute_has_berita_acara(self):
         for wiz in self:
             wiz.has_berita_acara = (
